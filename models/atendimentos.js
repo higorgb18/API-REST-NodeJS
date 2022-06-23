@@ -1,5 +1,6 @@
 const moment = require('moment');
-const conexao = require('../dbConfig/connection');
+const axios = require('axios')
+const conexao = require('../dbConfig/database/connection');
 
 class Atendimento {
     add(atendimento, res) {
@@ -58,15 +59,23 @@ class Atendimento {
     }
 
     buscaPorId(id, res) {
-        const sql = `SELECT * FROM Atendimentos WHERE id=${id}`;
+        const sql = `SELECT * FROM Atendimentos WHERE id=${id}`
 
-        conexao.query(sql, (error, results) => {
-            const atendimento = results[0];
+        conexao.query(sql, async (erro, resultados) => {
+            const atendimento = resultados[0]
+            const cpf = atendimento.cliente
 
-            if (error) {
-                res.status(400).json(error);
+            if (erro) {
+
+                res.status(400).json(erro)
+
             } else {
-                res.status(200).json(atendimento);
+
+                const { data } = await axios.get(`http://localhost:8082/${cpf}`)
+                atendimento.cliente = data
+
+                res.status(200).json(atendimento)
+
             }
         })
     }
